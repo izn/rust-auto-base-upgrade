@@ -10,9 +10,19 @@ namespace Carbon.Plugins
         private void OpenMenu(ConsoleSystem.Arg arg)
         {
             BasePlayer player = arg.Connection?.player as BasePlayer;
-            BuildingPrivlidge cupboard = GetUsableCupboard(player);
+            OpenUpgradeMenu(player, GetAuthorizedCupboard(player));
+        }
 
-            if (cupboard == null) return;
+        [ChatCommand("baseupgrade")]
+        private void OpenUpgradeCommand(BasePlayer player, string command, string[] args)
+        {
+            OpenUpgradeMenu(player, GetAuthorizedCupboard(player));
+        }
+
+        private void OpenUpgradeMenu(BasePlayer player, BuildingPrivlidge cupboard)
+        {
+            if (!CanUseCupboard(player, cupboard))
+                return;
 
             upgradeUi.ShowUpgradeMenu(player, cupboard);
         }
@@ -21,7 +31,7 @@ namespace Carbon.Plugins
         private void StopUpgrade(ConsoleSystem.Arg arg)
         {
             BasePlayer player = arg.Connection?.player as BasePlayer;
-            BuildingPrivlidge cupboard = GetUsableCupboard(player);
+            BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
 
             if (cupboard == null) return;
 
@@ -47,7 +57,7 @@ namespace Carbon.Plugins
         private void StartUpgrade(ConsoleSystem.Arg arg)
         {
             BasePlayer player = arg.Connection?.player as BasePlayer;
-            BuildingPrivlidge cupboard = GetUsableCupboard(player);
+            BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
 
             BuildingGrade.Enum targetGrade = (BuildingGrade.Enum)arg.GetInt(0, (int)BuildingGrade.Enum.None);
 

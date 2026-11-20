@@ -192,11 +192,11 @@ namespace Carbon.Plugins
             return true;
         }
 
-        private static BuildingPrivlidge GetUsableCupboard(BasePlayer player)
+        private static BuildingPrivlidge GetAuthorizedCupboard(BasePlayer player)
         {
             if (player == null) return null;
 
-            BuildingPrivlidge cupboard = player.inventory.loot.entitySource as BuildingPrivlidge;
+            BuildingPrivlidge cupboard = player.GetBuildingPrivilege();
             if (!CanUseCupboard(player, cupboard))
                 return null;
 
