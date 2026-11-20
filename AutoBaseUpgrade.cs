@@ -1,6 +1,6 @@
 namespace Carbon.Plugins
 {
-    [Info("Auto Base Upgrade", "Pretend", "1.0.0")]
+    [Info("Auto Base Upgrade", "Pretend", "1.0.1")]
     [Description("Upgrades a connected base one block at a time using resources from its Tool Cupboard.")]
     public partial class AutoBaseUpgrade : CarbonPlugin
     {
