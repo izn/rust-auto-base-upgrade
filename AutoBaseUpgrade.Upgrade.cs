@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Oxide.Core;
 
 namespace Carbon.Plugins
 {
@@ -30,10 +29,6 @@ namespace Carbon.Plugins
 
                 ConstructionGrade grade = GetConstructionGrade(block, run.TargetGrade);
                 if (grade == null)
-                    continue;
-
-                object hookResult = Interface.CallHook("CanChangeGrade", player, block, run.TargetGrade);
-                if (hookResult != null)
                     continue;
 
                 List<ItemAmount> cost = grade.CostToBuild(block.grade);
@@ -93,8 +88,6 @@ namespace Carbon.Plugins
                 (int)targetGrade, grade.gradeBase.skin);
 
             block.ChangeGradeAndSkin(targetGrade, grade.gradeBase.skin, playEffect: true);
-
-            Interface.CallHook("OnStructureUpgrade", block, player, targetGrade);
         }
 
         private GradePreview BuildPreview(BuildingGrade.Enum targetGrade, List<BuildingBlock> buildingBlocks)
