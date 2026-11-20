@@ -167,6 +167,22 @@ namespace Carbon.Plugins
             return true;
         }
 
+        private static bool CanPayAtLeastOneBlock(BuildingPrivlidge cupboard,
+            List<BuildingBlock> blocks, BuildingGrade.Enum targetGrade)
+        {
+            foreach (BuildingBlock block in blocks)
+            {
+                ConstructionGrade grade = GetConstructionGrade(block, targetGrade);
+                if (grade == null)
+                    continue;
+
+                if (HasAmounts(cupboard, grade.CostToBuild(block.grade)))
+                    return true;
+            }
+
+            return false;
+        }
+
         private static bool HasAmounts(BuildingPrivlidge cupboard, List<ItemAmount> required)
         {
             foreach (ItemAmount amount in required)

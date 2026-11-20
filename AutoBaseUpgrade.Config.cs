@@ -48,6 +48,7 @@ namespace Carbon.Plugins
             public string UpgradeButton = "Upgrade";
             public string PartialUpgradeButton = "Upgrade partial";
             public string CompleteButton = "Complete";
+            public string NoResources = "Not enough resources";
             public string BlocksNeedUpgrade = "{0:N0} of {1:N0} blocks need upgrade";
             public string NoResourcesRequired = "No resources required";
             public string ResourceAvailable = "{0}: Required {1:N0} | In TC {2:N0} | After upgrade {3:N0}";

@@ -39,13 +39,18 @@ namespace Carbon.Plugins
                     plugin.pluginConfig.Colors.Button, 10);
             }
 
-            public UiButtonDefinition Upgrade(BuildingGrade.Enum grade, bool hasBlocksToUpgrade, bool canPay)
+            public UiButtonDefinition Upgrade(BuildingGrade.Enum grade, bool hasBlocksToUpgrade,
+                bool canPayAll, bool canPayAny)
             {
                 if (!hasBlocksToUpgrade)
                     return Create(plugin.pluginConfig.Text.CompleteButton, null,
                         plugin.pluginConfig.Colors.DisabledButton, 11);
 
-                return Create(GetUpgradeText(canPay), "autobaseupgrade.start " + (int)grade,
+                if (!canPayAny)
+                    return Create(plugin.pluginConfig.Text.NoResources, null,
+                        plugin.pluginConfig.Colors.DisabledButton, 11);
+
+                return Create(GetUpgradeText(canPayAll), "autobaseupgrade.start " + (int)grade,
                     plugin.pluginConfig.Colors.Button, 11);
             }
 
@@ -56,13 +61,6 @@ namespace Carbon.Plugins
 
                 return plugin.pluginConfig.Text.PartialUpgradeButton;
             }
-
-
-
-
-
-
-
             private UiButtonDefinition Create(string text, string command, string color, int fontSize)
             {
                 return new UiButtonDefinition
@@ -209,11 +207,13 @@ namespace Carbon.Plugins
             {
                 string row = MenuUi + ".Row." + index;
                 bool hasBlocksToUpgrade = preview.EligibleBlocks.Count > 0;
-                bool canPay = AutoBaseUpgrade.HasAmounts(cupboard, preview.TotalCost);
+                bool canPayAll = AutoBaseUpgrade.HasAmounts(cupboard, preview.TotalCost);
+                bool canPayAnyBlock = AutoBaseUpgrade.CanPayAtLeastOneBlock(cupboard,
+                    preview.EligibleBlocks, grade);
 
                 CreateGradeRowPanel(cui, row, index);
-                AddGradeLabels(cui, row, grade, preview, cupboard, canPay);
-                AddGradeActions(cui, row, grade, hasBlocksToUpgrade, canPay);
+                AddGradeLabels(cui, row, grade, preview, cupboard, canPayAll);
+                AddGradeActions(cui, row, grade, hasBlocksToUpgrade, canPayAll, canPayAnyBlock);
             }
 
             private void CreateGradeRowPanel(CUI cui, string row, int index)
@@ -261,9 +261,9 @@ namespace Carbon.Plugins
             }
 
             private void AddGradeActions(CUI cui, string row, BuildingGrade.Enum grade,
-                bool hasBlocksToUpgrade, bool canPay)
+                bool hasBlocksToUpgrade, bool canPayAll, bool canPayAny)
             {
-                AddButton(cui, row, buttons.Upgrade(grade, hasBlocksToUpgrade, canPay),
+                AddButton(cui, row, buttons.Upgrade(grade, hasBlocksToUpgrade, canPayAll, canPayAny),
                     new LuiPosition(0.68f, 0.18f, 0.975f, 0.82f), LuiOffset.None);
             }
 
