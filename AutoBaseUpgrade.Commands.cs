@@ -6,57 +6,23 @@ namespace Carbon.Plugins
 {
     public partial class AutoBaseUpgrade
     {
-        [ProtectedCommand("autobaseupgrade.open")]
-        private void OpenMenu(ConsoleSystem.Arg arg)
-        {
-            BasePlayer player = arg.Connection?.player as BasePlayer;
-            OpenUpgradeMenu(player, GetAuthorizedCupboard(player));
-        }
-
         [ChatCommand("baseupgrade")]
         private void OpenUpgradeCommand(BasePlayer player, string command, string[] args)
         {
-            OpenUpgradeMenu(player, GetAuthorizedCupboard(player));
+            OpenUpgradeMenu(player);
         }
 
-        private void OpenUpgradeMenu(BasePlayer player, BuildingPrivlidge cupboard)
+        [ProtectedCommand("autobaseupgrade.open")]
+        private void OpenMenu(ConsoleSystem.Arg arg)
         {
-            if (!CanUseCupboard(player, cupboard))
-                return;
-
-            upgradeUi.ShowUpgradeMenu(player, cupboard);
-        }
-
-        [ProtectedCommand("autobaseupgrade.stop")]
-        private void StopUpgrade(ConsoleSystem.Arg arg)
-        {
-            BasePlayer player = arg.Connection?.player as BasePlayer;
-            BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
-
-            if (cupboard == null) return;
-
-            uint buildingId = cupboard.buildingID;
-            if (!runningUpgradesByBuilding.ContainsKey(buildingId))
-            {
-                player.ChatMessage(pluginConfig.Messages.NothingToStop);
-                upgradeUi.ShowAutoUpgradeButton(player, cupboard);
-                return;
-            }
-
-            UpgradeRun run = runningUpgradesByBuilding[buildingId];
-            run.Cancelled = true;
-
-            BasePlayer owner = BasePlayer.FindByID(run.PlayerId);
-            FinishUpgrade(run, owner, pluginConfig.Messages.UpgradeStopped);
-
-            if (owner != player)
-                player.ChatMessage(pluginConfig.Messages.UpgradeStopped);
+            BasePlayer player = GetPlayer(arg);
+            OpenUpgradeMenu(player);
         }
 
         [ProtectedCommand("autobaseupgrade.start")]
         private void StartUpgrade(ConsoleSystem.Arg arg)
         {
-            BasePlayer player = arg.Connection?.player as BasePlayer;
+            BasePlayer player = GetPlayer(arg);
             BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
 
             BuildingGrade.Enum targetGrade = (BuildingGrade.Enum)arg.GetInt(0, (int)BuildingGrade.Enum.None);
@@ -104,6 +70,46 @@ namespace Carbon.Plugins
                 run.Blocks.Count, UpgradeUi.GradeName(targetGrade)));
 
             UpgradeNextBlock(run);
+        }
+
+        [ProtectedCommand("autobaseupgrade.stop")]
+        private void StopUpgrade(ConsoleSystem.Arg arg)
+        {
+            BasePlayer player = GetPlayer(arg);
+            BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
+
+            if (cupboard == null) return;
+
+            uint buildingId = cupboard.buildingID;
+            if (!runningUpgradesByBuilding.ContainsKey(buildingId))
+            {
+                player.ChatMessage(pluginConfig.Messages.NothingToStop);
+                upgradeUi.ShowAutoUpgradeButton(player, cupboard);
+                return;
+            }
+
+            UpgradeRun run = runningUpgradesByBuilding[buildingId];
+            run.Cancelled = true;
+
+            BasePlayer owner = BasePlayer.FindByID(run.PlayerId);
+            FinishUpgrade(run, owner, pluginConfig.Messages.UpgradeStopped);
+
+            if (owner != player)
+                player.ChatMessage(pluginConfig.Messages.UpgradeStopped);
+        }
+
+        private static BasePlayer GetPlayer(ConsoleSystem.Arg arg)
+        {
+            return arg?.Connection?.player as BasePlayer;
+        }
+
+        private void OpenUpgradeMenu(BasePlayer player)
+        {
+            BuildingPrivlidge cupboard = GetAuthorizedCupboard(player);
+            if (cupboard == null)
+                return;
+
+            upgradeUi.ShowUpgradeMenu(player, cupboard);
         }
     }
 }
