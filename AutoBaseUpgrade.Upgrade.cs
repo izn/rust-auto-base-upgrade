@@ -55,7 +55,7 @@ namespace Carbon.Plugins
                 return;
             }
 
-            FinishUpgrade(run, player);
+            FinishUpgrade(run, player, "UpgradeComplete", run.Upgraded);
         }
 
         private static bool ShouldSkipBlock(BuildingBlock block, BuildingGrade.Enum targetGrade)
@@ -66,14 +66,12 @@ namespace Carbon.Plugins
             return block.grade >= targetGrade;
         }
 
-        private void FinishUpgrade(UpgradeRun run, BasePlayer player, string messageKey = null)
+        private void FinishUpgrade(UpgradeRun run, BasePlayer player, string messageKey,
+            params object[] args)
         {
             runningUpgradesByBuilding.Remove(run.BuildingId);
             upgradeUi.RefreshCupboardButtons(run.Cupboard);
-            if (player == null || !player.IsConnected) return;
-
-            player.ChatMessage(GetMessage(messageKey ?? "UpgradeComplete",
-                player, run.Upgraded));
+            SendMessage(player, messageKey, args);
         }
 
         private static void UpgradeBlock(BasePlayer player, BuildingBlock block,

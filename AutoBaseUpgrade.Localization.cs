@@ -70,6 +70,14 @@ namespace Carbon.Plugins
                 lang.GetMessage(key, this, player.UserIDString), args);
         }
 
+        private void SendMessage(BasePlayer player, string key, params object[] args)
+        {
+            if (player == null || !player.IsConnected)
+                return;
+
+            player.ChatMessage(GetMessage(key, player, args));
+        }
+
         private string GetGradeName(BasePlayer player, BuildingGrade.Enum grade)
         {
             switch (grade)
