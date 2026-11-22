@@ -60,7 +60,6 @@ namespace Carbon.Plugins
             public string NothingToStop = "Nothing to stop.";
             public string UpgradeStopped = "Upgrade stopped.";
             public string UpgradeAlreadyRunning = "Upgrade already running.";
-            public string PlayerAlreadyUpgrading = "You already have an upgrade running.";
             public string NothingToUpgrade = "Nothing to upgrade.";
             public string UpgradeStarted = "Upgrading {0:N0} blocks to {1}.";
             public string NotEnoughResources = "Not enough resources.";

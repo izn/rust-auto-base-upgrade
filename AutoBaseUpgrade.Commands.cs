@@ -37,12 +37,6 @@ namespace Carbon.Plugins
             }
 
             ulong playerId = player.userID;
-            if (runningUpgradesByBuilding.Values.Any(run => run.PlayerId == playerId))
-            {
-                player.ChatMessage(pluginConfig.Messages.PlayerAlreadyUpgrading);
-                return;
-            }
-
             GradePreview preview = BuildPreview(targetGrade, GetBuildingBlocks(cupboard));
             if (preview.EligibleBlocks.Count == 0)
             {
@@ -81,14 +75,14 @@ namespace Carbon.Plugins
             if (cupboard == null) return;
 
             uint buildingId = cupboard.buildingID;
-            if (!runningUpgradesByBuilding.ContainsKey(buildingId))
+            UpgradeRun run;
+            if (!runningUpgradesByBuilding.TryGetValue(buildingId, out run))
             {
                 player.ChatMessage(pluginConfig.Messages.NothingToStop);
                 upgradeUi.ShowAutoUpgradeButton(player, cupboard);
                 return;
             }
 
-            UpgradeRun run = runningUpgradesByBuilding[buildingId];
             run.Cancelled = true;
 
             BasePlayer owner = BasePlayer.FindByID(run.PlayerId);
