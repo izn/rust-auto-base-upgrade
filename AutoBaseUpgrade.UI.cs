@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Carbon.Components;
 using UnityEngine;
@@ -28,38 +27,38 @@ namespace Carbon.Plugins
                 this.plugin = plugin;
             }
 
-            public UiButtonDefinition Cupboard(BuildingPrivlidge cupboard)
+            public UiButtonDefinition Cupboard(BasePlayer player, BuildingPrivlidge cupboard)
             {
                 bool isRunning = plugin.runningUpgradesByBuilding.ContainsKey(cupboard.buildingID);
                 if (isRunning)
-                    return Create(plugin.pluginConfig.Text.StopUpgradeButton, "autobaseupgrade.stop",
+                    return Create(plugin.GetMessage("StopUpgradeButton", player), "autobaseupgrade.stop",
                         plugin.pluginConfig.Colors.StopButton, 10);
 
-                return Create(plugin.pluginConfig.Text.AutoUpgradeButton, "autobaseupgrade.open",
+                return Create(plugin.GetMessage("AutoUpgradeButton", player), "autobaseupgrade.open",
                     plugin.pluginConfig.Colors.Button, 10);
             }
 
-            public UiButtonDefinition Upgrade(BuildingGrade.Enum grade, bool hasBlocksToUpgrade,
+            public UiButtonDefinition Upgrade(BasePlayer player, BuildingGrade.Enum grade, bool hasBlocksToUpgrade,
                 bool canPayAll, bool canPayAny)
             {
                 if (!hasBlocksToUpgrade)
-                    return Create(plugin.pluginConfig.Text.CompleteButton, null,
+                    return Create(plugin.GetMessage("CompleteButton", player), null,
                         plugin.pluginConfig.Colors.DisabledButton, 11);
 
                 if (!canPayAny)
-                    return Create(plugin.pluginConfig.Text.NoResources, null,
+                    return Create(plugin.GetMessage("NoResources", player), null,
                         plugin.pluginConfig.Colors.DisabledButton, 11);
 
-                return Create(GetUpgradeText(canPayAll), "autobaseupgrade.start " + (int)grade,
+                return Create(GetUpgradeText(player, canPayAll), "autobaseupgrade.start " + (int)grade,
                     plugin.pluginConfig.Colors.Button, 11);
             }
 
-            private string GetUpgradeText(bool canPay)
+            private string GetUpgradeText(BasePlayer player, bool canPay)
             {
                 if (canPay)
-                    return plugin.pluginConfig.Text.UpgradeButton;
+                    return plugin.GetMessage("UpgradeButton", player);
 
-                return plugin.pluginConfig.Text.PartialUpgradeButton;
+                return plugin.GetMessage("PartialUpgradeButton", player);
             }
             private UiButtonDefinition Create(string text, string command, string color, int fontSize)
             {
@@ -92,7 +91,7 @@ namespace Carbon.Plugins
 
             public void ShowAutoUpgradeButton(BasePlayer player, BuildingPrivlidge cupboard)
             {
-                UiButtonDefinition button = buttons.Cupboard(cupboard);
+                UiButtonDefinition button = buttons.Cupboard(player, cupboard);
 
                 using (CUI cui = plugin.CreateCUI())
                 {
@@ -136,9 +135,9 @@ namespace Carbon.Plugins
                     cui.Destroy(MenuUi, player);
 
                     CreateMenuPanel(cui);
-                    AddMenuHeader(cui);
-                    AddGradeRows(cui, buildingBlocks, cupboard);
-                    AddMenuFooter(cui);
+                    AddMenuHeader(cui, player);
+                    AddGradeRows(cui, player, buildingBlocks, cupboard);
+                    AddMenuFooter(cui, player);
                     cui.v2.SendUi(player);
                 }
             }
@@ -152,23 +151,23 @@ namespace Carbon.Plugins
                 panel.AddCursor();
             }
 
-            private void AddMenuHeader(CUI cui)
+            private void AddMenuHeader(CUI cui, BasePlayer player)
             {
-                AddMenuTitle(cui);
-                AddMenuSubtitle(cui);
+                AddMenuTitle(cui, player);
+                AddMenuSubtitle(cui, player);
                 AddMenuCloseButton(cui);
             }
 
-            private void AddMenuTitle(CUI cui)
+            private void AddMenuTitle(CUI cui, BasePlayer player)
             {
-                AddText(cui, MenuUi, plugin.pluginConfig.Text.Title, 20,
+                AddText(cui, MenuUi, plugin.GetMessage("Title", player), 20,
                     plugin.UiColor(plugin.pluginConfig.Colors.Text), TextAnchor.MiddleLeft,
                     new LuiPosition(0.035f, 0.895f, 0.80f, 0.98f));
             }
 
-            private void AddMenuSubtitle(CUI cui)
+            private void AddMenuSubtitle(CUI cui, BasePlayer player)
             {
-                AddText(cui, MenuUi, plugin.pluginConfig.Text.Subtitle, 12,
+                AddText(cui, MenuUi, plugin.GetMessage("Subtitle", player), 12,
                     plugin.UiColor(plugin.pluginConfig.Colors.MutedText), TextAnchor.MiddleLeft,
                     new LuiPosition(0.035f, 0.835f, 0.90f, 0.90f));
             }
@@ -179,20 +178,20 @@ namespace Carbon.Plugins
                     new LuiPosition(0.925f, 0.91f, 0.972f, 0.975f), 13, MenuUi);
             }
 
-            private void AddGradeRows(CUI cui, List<BuildingBlock> buildingBlocks,
+            private void AddGradeRows(CUI cui, BasePlayer player, List<BuildingBlock> buildingBlocks,
                 BuildingPrivlidge cupboard)
             {
                 for (int index = 0; index < MenuGrades.Length; index++)
                 {
                     BuildingGrade.Enum grade = MenuGrades[index];
                     GradePreview preview = plugin.BuildPreview(grade, buildingBlocks);
-                    AddGradeRow(cui, index, grade, preview, cupboard);
+                    AddGradeRow(cui, player, index, grade, preview, cupboard);
                 }
             }
 
-            private void AddMenuFooter(CUI cui)
+            private void AddMenuFooter(CUI cui, BasePlayer player)
             {
-                AddFooterText(cui, MenuUi, plugin.pluginConfig.Text.Footer);
+                AddFooterText(cui, MenuUi, plugin.GetMessage("Footer", player));
             }
 
             private void AddFooterText(CUI cui, string parent, string text)
@@ -202,7 +201,7 @@ namespace Carbon.Plugins
                     new LuiPosition(0.04f, 0.018f, 0.96f, 0.065f));
             }
 
-            private void AddGradeRow(CUI cui, int index, BuildingGrade.Enum grade,
+            private void AddGradeRow(CUI cui, BasePlayer player, int index, BuildingGrade.Enum grade,
                 GradePreview preview, BuildingPrivlidge cupboard)
             {
                 string row = MenuUi + ".Row." + index;
@@ -212,8 +211,8 @@ namespace Carbon.Plugins
                     preview.EligibleBlocks, grade);
 
                 CreateGradeRowPanel(cui, row, index);
-                AddGradeLabels(cui, row, grade, preview, cupboard, canPayAll);
-                AddGradeActions(cui, row, grade, hasBlocksToUpgrade, canPayAll, canPayAnyBlock);
+                AddGradeLabels(cui, player, row, grade, preview, cupboard, canPayAll);
+                AddGradeActions(cui, player, row, grade, hasBlocksToUpgrade, canPayAll, canPayAnyBlock);
             }
 
             private void CreateGradeRowPanel(CUI cui, string row, int index)
@@ -229,62 +228,65 @@ namespace Carbon.Plugins
                 return new LuiPosition(GradeRowLeft, bottom, GradeRowRight, top);
             }
 
-            private void AddGradeLabels(CUI cui, string row, BuildingGrade.Enum grade,
+            private void AddGradeLabels(CUI cui, BasePlayer player, string row, BuildingGrade.Enum grade,
                 GradePreview preview, BuildingPrivlidge cupboard, bool canPay)
             {
-                AddGradeName(cui, row, grade);
-                AddUpgradeCount(cui, row, preview);
-                AddResourceSummary(cui, row, preview, cupboard, canPay);
+                AddGradeName(cui, player, row, grade);
+                AddUpgradeCount(cui, player, row, preview);
+                AddResourceSummary(cui, player, row, preview, cupboard, canPay);
             }
 
-            private void AddGradeName(CUI cui, string row, BuildingGrade.Enum grade)
+            private void AddGradeName(CUI cui, BasePlayer player, string row, BuildingGrade.Enum grade)
             {
-                AddText(cui, row, GradeName(grade), 16, GradeColor(grade), TextAnchor.MiddleLeft,
+                AddText(cui, row, plugin.GetGradeName(player, grade), 16,
+                    GradeColor(grade), TextAnchor.MiddleLeft,
                     new LuiPosition(0.025f, 0.54f, 0.20f, 0.94f));
             }
 
-            private void AddUpgradeCount(CUI cui, string row, GradePreview preview)
+            private void AddUpgradeCount(CUI cui, BasePlayer player, string row, GradePreview preview)
             {
-                string text = string.Format(CultureInfo.InvariantCulture,
-                    plugin.pluginConfig.Text.BlocksNeedUpgrade,
+                string text = plugin.GetMessage("BlocksNeedUpgrade", player,
                     preview.BlocksBelowTarget, preview.TotalBlocks);
                 AddText(cui, row, text, 11, plugin.UiColor(plugin.pluginConfig.Colors.MutedText),
                     TextAnchor.MiddleLeft, new LuiPosition(0.025f, 0.08f, 0.30f, 0.50f));
             }
 
-            private void AddResourceSummary(CUI cui, string row, GradePreview preview,
+            private void AddResourceSummary(CUI cui, BasePlayer player, string row, GradePreview preview,
                 BuildingPrivlidge cupboard, bool canPay)
             {
-                AddText(cui, row, FormatResources(preview.TotalCost, cupboard), 12,
+                AddText(cui, row, FormatResources(preview.TotalCost, cupboard, player), 12,
                     GetResourceColor(canPay), TextAnchor.MiddleLeft,
                     new LuiPosition(0.31f, 0.16f, 0.66f, 0.84f));
             }
 
-            private void AddGradeActions(CUI cui, string row, BuildingGrade.Enum grade,
+            private void AddGradeActions(CUI cui, BasePlayer player, string row, BuildingGrade.Enum grade,
                 bool hasBlocksToUpgrade, bool canPayAll, bool canPayAny)
             {
-                AddButton(cui, row, buttons.Upgrade(grade, hasBlocksToUpgrade, canPayAll, canPayAny),
+                AddButton(cui, row, buttons.Upgrade(player, grade, hasBlocksToUpgrade, canPayAll, canPayAny),
                     new LuiPosition(0.68f, 0.18f, 0.975f, 0.82f), LuiOffset.None);
             }
 
-            private string FormatResources(Dictionary<int, int> cost, BuildingPrivlidge cupboard)
+            private string FormatResources(Dictionary<int, int> cost, BuildingPrivlidge cupboard,
+                BasePlayer player)
             {
-                if (cost.Count == 0) return plugin.pluginConfig.Text.NoResourcesRequired;
+                if (cost.Count == 0) return plugin.GetMessage("NoResourcesRequired", player);
                 return string.Join("   ", cost.OrderBy(entry => entry.Key)
-                    .Select(entry => FormatResourceLine(entry.Key, entry.Value, cupboard)));
+                    .Select(entry => FormatResourceLine(entry.Key, entry.Value, cupboard, player)));
             }
 
-            private string FormatResourceLine(int itemId, int requiredAmount, BuildingPrivlidge cupboard)
+            private string FormatResourceLine(int itemId, int requiredAmount, BuildingPrivlidge cupboard,
+                BasePlayer player)
             {
-                string name = ItemManager.FindItemDefinition(itemId).displayName.english;
+                ItemDefinition itemDefinition = ItemManager.FindItemDefinition(itemId);
+                string name = itemDefinition.displayName.english;
                 int storedAmount = cupboard.inventory.GetAmount(itemId);
                 int remainingAmount = storedAmount - requiredAmount;
 
                 if (remainingAmount >= 0)
-                    return string.Format(CultureInfo.InvariantCulture, plugin.pluginConfig.Text.ResourceAvailable,
+                    return plugin.GetMessage("ResourceAvailable", player,
                         name, requiredAmount, storedAmount, remainingAmount);
 
-                return string.Format(CultureInfo.InvariantCulture, plugin.pluginConfig.Text.ResourceMissing,
+                return plugin.GetMessage("ResourceMissing", player,
                     name, requiredAmount, storedAmount, -remainingAmount);
             }
 
@@ -294,18 +296,6 @@ namespace Carbon.Plugins
                     return plugin.UiColor(plugin.pluginConfig.Colors.SuccessText);
 
                 return plugin.UiColor(plugin.pluginConfig.Colors.ErrorText);
-            }
-
-            public static string GradeName(BuildingGrade.Enum grade)
-            {
-                switch (grade)
-                {
-                    case BuildingGrade.Enum.Wood: return "Wood";
-                    case BuildingGrade.Enum.Stone: return "Stone";
-                    case BuildingGrade.Enum.Metal: return "Sheet Metal";
-                    case BuildingGrade.Enum.TopTier: return "Armored";
-                    default: return grade.ToString();
-                }
             }
 
             private string GradeColor(BuildingGrade.Enum grade)

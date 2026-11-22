@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Carbon.Plugins
@@ -12,12 +11,6 @@ namespace Carbon.Plugins
         {
             [JsonProperty("UI colors")]
             public UiColors Colors = new UiColors();
-
-            [JsonProperty("UI text")]
-            public UiText Text = new UiText();
-
-            [JsonProperty("Messages")]
-            public Messages Messages = new Messages();
 
         }
 
@@ -38,37 +31,9 @@ namespace Carbon.Plugins
             public string Armored = "#D1D1C2FF";
         }
 
-        private sealed class UiText
-        {
-            public string Title = "Auto Base Upgrade";
-            public string AutoUpgradeButton = "Auto-upgrade";
-            public string StopUpgradeButton = "Stop upgrade";
-            public string Subtitle = "Choose a target grade. Each block is paid from this Tool Cupboard when upgraded.";
-            public string Footer = "Higher-grade blocks are never downgraded.";
-            public string UpgradeButton = "Upgrade";
-            public string PartialUpgradeButton = "Upgrade partial";
-            public string CompleteButton = "Complete";
-            public string NoResources = "Not enough resources";
-            public string BlocksNeedUpgrade = "{0:N0} of {1:N0} blocks need upgrade";
-            public string NoResourcesRequired = "No resources required";
-            public string ResourceAvailable = "{0}: Required {1:N0} | In TC {2:N0} | After upgrade {3:N0}";
-            public string ResourceMissing = "{0}: Required {1:N0} | In TC {2:N0} | Missing {3:N0}";
-        }
-
-        private sealed class Messages
-        {
-            public string NothingToStop = "Nothing to stop.";
-            public string UpgradeStopped = "Upgrade stopped.";
-            public string UpgradeAlreadyRunning = "Upgrade already running.";
-            public string NothingToUpgrade = "Nothing to upgrade.";
-            public string UpgradeStarted = "Upgrading {0:N0} blocks to {1}.";
-            public string NotEnoughResources = "Not enough resources.";
-            public string UpgradeComplete = "Upgrade complete: {0:N0} blocks upgraded.";
-        }
         protected override void LoadDefaultConfig()
         {
             pluginConfig = new PluginConfig();
-            SaveConfig();
         }
 
         protected override void LoadConfig()

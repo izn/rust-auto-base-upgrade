@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Carbon.Plugins
@@ -17,7 +16,7 @@ namespace Carbon.Plugins
 
             if (!CanUseCupboard(player, run.Cupboard))
             {
-                FinishUpgrade(run, player, pluginConfig.Messages.UpgradeStopped);
+                FinishUpgrade(run, player, "UpgradeStopped");
                 return;
             }
 
@@ -34,7 +33,7 @@ namespace Carbon.Plugins
                 List<ItemAmount> cost = grade.CostToBuild(block.grade);
                 if (!HasAmounts(run.Cupboard, cost))
                 {
-                    FinishUpgrade(run, player, pluginConfig.Messages.NotEnoughResources);
+                    FinishUpgrade(run, player, "NotEnoughResources");
                     return;
                 }
 
@@ -67,16 +66,14 @@ namespace Carbon.Plugins
             return block.grade >= targetGrade;
         }
 
-        private void FinishUpgrade(UpgradeRun run, BasePlayer player, string messageOverride = null)
+        private void FinishUpgrade(UpgradeRun run, BasePlayer player, string messageKey = null)
         {
             runningUpgradesByBuilding.Remove(run.BuildingId);
             upgradeUi.RefreshCupboardButtons(run.Cupboard);
             if (player == null || !player.IsConnected) return;
 
-            string completionMessage = string.Format(CultureInfo.InvariantCulture,
-                pluginConfig.Messages.UpgradeComplete, run.Upgraded);
-
-            player.ChatMessage(messageOverride ?? completionMessage);
+            player.ChatMessage(GetMessage(messageKey ?? "UpgradeComplete",
+                player, run.Upgraded));
         }
 
         private static void UpgradeBlock(BasePlayer player, BuildingBlock block,

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Carbon.Plugins
@@ -32,7 +30,7 @@ namespace Carbon.Plugins
             uint buildingId = cupboard.buildingID;
             if (runningUpgradesByBuilding.ContainsKey(buildingId))
             {
-                player.ChatMessage(pluginConfig.Messages.UpgradeAlreadyRunning);
+                player.ChatMessage(GetMessage("UpgradeAlreadyRunning", player));
                 return;
             }
 
@@ -40,7 +38,7 @@ namespace Carbon.Plugins
             GradePreview preview = BuildPreview(targetGrade, GetBuildingBlocks(cupboard));
             if (preview.EligibleBlocks.Count == 0)
             {
-                player.ChatMessage(pluginConfig.Messages.NothingToUpgrade);
+                player.ChatMessage(GetMessage("NothingToUpgrade", player));
 
                 upgradeUi.ShowUpgradeMenu(player, cupboard);
                 return;
@@ -59,9 +57,8 @@ namespace Carbon.Plugins
             upgradeUi.DestroyMenu(player);
             upgradeUi.RefreshCupboardButtons(cupboard);
 
-            player.ChatMessage(string.Format(CultureInfo.InvariantCulture,
-                pluginConfig.Messages.UpgradeStarted,
-                run.Blocks.Count, UpgradeUi.GradeName(targetGrade)));
+            player.ChatMessage(GetMessage("UpgradeStarted", player,
+                run.Blocks.Count, GetGradeName(player, targetGrade)));
 
             UpgradeNextBlock(run);
         }
@@ -78,7 +75,7 @@ namespace Carbon.Plugins
             UpgradeRun run;
             if (!runningUpgradesByBuilding.TryGetValue(buildingId, out run))
             {
-                player.ChatMessage(pluginConfig.Messages.NothingToStop);
+                player.ChatMessage(GetMessage("NothingToStop", player));
                 upgradeUi.ShowAutoUpgradeButton(player, cupboard);
                 return;
             }
@@ -86,10 +83,10 @@ namespace Carbon.Plugins
             run.Cancelled = true;
 
             BasePlayer owner = BasePlayer.FindByID(run.PlayerId);
-            FinishUpgrade(run, owner, pluginConfig.Messages.UpgradeStopped);
+            FinishUpgrade(run, owner, "UpgradeStopped");
 
             if (owner != player)
-                player.ChatMessage(pluginConfig.Messages.UpgradeStopped);
+                player.ChatMessage(GetMessage("UpgradeStopped", player));
         }
 
         private static BasePlayer GetPlayer(ConsoleSystem.Arg arg)
