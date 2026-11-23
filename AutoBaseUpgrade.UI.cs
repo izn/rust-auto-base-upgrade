@@ -38,14 +38,15 @@ namespace Carbon.Plugins
                     plugin.pluginConfig.Colors.Button, 10);
             }
 
-            public UiButtonDefinition Upgrade(BasePlayer player, BuildingGrade.Enum grade, bool hasBlocksToUpgrade)
+            public UiButtonDefinition Upgrade(BasePlayer player, BuildingGrade.Enum grade, bool hasBlocksToUpgrade,
+                bool canPayAll)
             {
                 if (!hasBlocksToUpgrade)
                     return Create(plugin.GetMessage("CompleteButton", player), null,
                         plugin.pluginConfig.Colors.DisabledButton, 11);
 
                 return Create(plugin.GetMessage("UpgradeButton", player), "autobaseupgrade.start " + (int)grade,
-                    plugin.pluginConfig.Colors.Button, 11);
+                    canPayAll ? plugin.pluginConfig.Colors.Button : plugin.pluginConfig.Colors.WarningButton, 11);
             }
 
             private UiButtonDefinition Create(string text, string command, string color, int fontSize)
@@ -198,7 +199,7 @@ namespace Carbon.Plugins
 
                 CreateGradeRowPanel(cui, row, index);
                 AddGradeLabels(cui, player, row, grade, preview, cupboard, canPayAll);
-                AddGradeActions(cui, player, row, grade, hasBlocksToUpgrade);
+                AddGradeActions(cui, player, row, grade, hasBlocksToUpgrade, canPayAll);
             }
 
             private void CreateGradeRowPanel(CUI cui, string row, int index)
@@ -240,39 +241,22 @@ namespace Carbon.Plugins
             private void AddResourceSummary(CUI cui, BasePlayer player, string row, GradePreview preview,
                 BuildingPrivlidge cupboard, bool canPay)
             {
-                AddText(cui, row, FormatResources(preview.CostItemId, preview.TotalCost, cupboard, player), 12,
+                AddText(cui, row, FormatResources(preview.TotalCost, player), 12,
                     GetResourceColor(canPay), TextAnchor.MiddleLeft,
                     new LuiPosition(0.31f, 0.16f, 0.66f, 0.84f));
             }
 
             private void AddGradeActions(CUI cui, BasePlayer player, string row, BuildingGrade.Enum grade,
-                bool hasBlocksToUpgrade)
+                bool hasBlocksToUpgrade, bool canPayAll)
             {
-                AddButton(cui, row, buttons.Upgrade(player, grade, hasBlocksToUpgrade),
+                AddButton(cui, row, buttons.Upgrade(player, grade, hasBlocksToUpgrade, canPayAll),
                     new LuiPosition(0.68f, 0.18f, 0.975f, 0.82f), LuiOffset.None);
             }
 
-            private string FormatResources(int itemId, int requiredAmount, BuildingPrivlidge cupboard,
-                BasePlayer player)
+            private string FormatResources(int requiredAmount, BasePlayer player)
             {
                 if (requiredAmount <= 0) return plugin.GetMessage("NoResourcesRequired", player);
-                return FormatResourceLine(itemId, requiredAmount, cupboard, player);
-            }
-
-            private string FormatResourceLine(int itemId, int requiredAmount, BuildingPrivlidge cupboard,
-                BasePlayer player)
-            {
-                ItemDefinition itemDefinition = ItemManager.FindItemDefinition(itemId);
-                string name = itemDefinition.displayName.english;
-                int storedAmount = cupboard.inventory.GetAmount(itemId);
-                int remainingAmount = storedAmount - requiredAmount;
-
-                if (remainingAmount >= 0)
-                    return plugin.GetMessage("ResourceAvailable", player,
-                        name, requiredAmount, storedAmount, remainingAmount);
-
-                return plugin.GetMessage("ResourceMissing", player,
-                    name, requiredAmount, storedAmount, -remainingAmount);
+                return plugin.GetMessage("ResourceCost", player, requiredAmount);
             }
 
             private string GetResourceColor(bool canPay)

@@ -19,6 +19,7 @@ namespace Carbon.Plugins
             public string Panel = "#0E1114FA";
             public string Row = "#182021FA";
             public string Button = "#527A33FA";
+            public string WarningButton = "#D6A72BFA";
             public string StopButton = "#8C2E24F2";
             public string DisabledButton = "#383D40E6";
             public string Text = "#E0EDF5FF";
