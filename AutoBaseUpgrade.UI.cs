@@ -38,28 +38,16 @@ namespace Carbon.Plugins
                     plugin.pluginConfig.Colors.Button, 10);
             }
 
-            public UiButtonDefinition Upgrade(BasePlayer player, BuildingGrade.Enum grade, bool hasBlocksToUpgrade,
-                bool canPayAll, bool canPayAny)
+            public UiButtonDefinition Upgrade(BasePlayer player, BuildingGrade.Enum grade, bool hasBlocksToUpgrade)
             {
                 if (!hasBlocksToUpgrade)
                     return Create(plugin.GetMessage("CompleteButton", player), null,
                         plugin.pluginConfig.Colors.DisabledButton, 11);
 
-                if (!canPayAny)
-                    return Create(plugin.GetMessage("NoResources", player), null,
-                        plugin.pluginConfig.Colors.DisabledButton, 11);
-
-                return Create(GetUpgradeText(player, canPayAll), "autobaseupgrade.start " + (int)grade,
+                return Create(plugin.GetMessage("UpgradeButton", player), "autobaseupgrade.start " + (int)grade,
                     plugin.pluginConfig.Colors.Button, 11);
             }
 
-            private string GetUpgradeText(BasePlayer player, bool canPay)
-            {
-                if (canPay)
-                    return plugin.GetMessage("UpgradeButton", player);
-
-                return plugin.GetMessage("PartialUpgradeButton", player);
-            }
             private UiButtonDefinition Create(string text, string command, string color, int fontSize)
             {
                 return new UiButtonDefinition
@@ -206,13 +194,11 @@ namespace Carbon.Plugins
             {
                 string row = MenuUi + ".Row." + index;
                 bool hasBlocksToUpgrade = preview.EligibleBlocks.Count > 0;
-                bool canPayAll = AutoBaseUpgrade.HasAmounts(cupboard, preview.TotalCost);
-                bool canPayAnyBlock = AutoBaseUpgrade.CanPayAtLeastOneBlock(cupboard,
-                    preview.EligibleBlocks, grade);
+                bool canPayAll = cupboard.inventory.GetAmount(preview.CostItemId) >= preview.TotalCost;
 
                 CreateGradeRowPanel(cui, row, index);
                 AddGradeLabels(cui, player, row, grade, preview, cupboard, canPayAll);
-                AddGradeActions(cui, player, row, grade, hasBlocksToUpgrade, canPayAll, canPayAnyBlock);
+                AddGradeActions(cui, player, row, grade, hasBlocksToUpgrade);
             }
 
             private void CreateGradeRowPanel(CUI cui, string row, int index)
@@ -254,24 +240,23 @@ namespace Carbon.Plugins
             private void AddResourceSummary(CUI cui, BasePlayer player, string row, GradePreview preview,
                 BuildingPrivlidge cupboard, bool canPay)
             {
-                AddText(cui, row, FormatResources(preview.TotalCost, cupboard, player), 12,
+                AddText(cui, row, FormatResources(preview.CostItemId, preview.TotalCost, cupboard, player), 12,
                     GetResourceColor(canPay), TextAnchor.MiddleLeft,
                     new LuiPosition(0.31f, 0.16f, 0.66f, 0.84f));
             }
 
             private void AddGradeActions(CUI cui, BasePlayer player, string row, BuildingGrade.Enum grade,
-                bool hasBlocksToUpgrade, bool canPayAll, bool canPayAny)
+                bool hasBlocksToUpgrade)
             {
-                AddButton(cui, row, buttons.Upgrade(player, grade, hasBlocksToUpgrade, canPayAll, canPayAny),
+                AddButton(cui, row, buttons.Upgrade(player, grade, hasBlocksToUpgrade),
                     new LuiPosition(0.68f, 0.18f, 0.975f, 0.82f), LuiOffset.None);
             }
 
-            private string FormatResources(Dictionary<int, int> cost, BuildingPrivlidge cupboard,
+            private string FormatResources(int itemId, int requiredAmount, BuildingPrivlidge cupboard,
                 BasePlayer player)
             {
-                if (cost.Count == 0) return plugin.GetMessage("NoResourcesRequired", player);
-                return string.Join("   ", cost.OrderBy(entry => entry.Key)
-                    .Select(entry => FormatResourceLine(entry.Key, entry.Value, cupboard, player)));
+                if (requiredAmount <= 0) return plugin.GetMessage("NoResourcesRequired", player);
+                return FormatResourceLine(itemId, requiredAmount, cupboard, player);
             }
 
             private string FormatResourceLine(int itemId, int requiredAmount, BuildingPrivlidge cupboard,

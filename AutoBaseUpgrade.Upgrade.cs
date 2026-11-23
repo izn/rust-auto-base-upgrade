@@ -30,14 +30,18 @@ namespace Carbon.Plugins
                 if (grade == null)
                     continue;
 
-                List<ItemAmount> cost = grade.CostToBuild(block.grade);
-                if (!HasAmounts(run.Cupboard, cost))
+                int costItemId;
+                int costAmount;
+                if (!TryGetBlockCost(grade, block, out costItemId, out costAmount))
+                    continue;
+
+                if (run.Cupboard.inventory.GetAmount(costItemId) < costAmount)
                 {
                     FinishUpgrade(run, player, "NotEnoughResources");
                     return;
                 }
 
-                TakeFromCupboard(run.Cupboard, cost);
+                TakeFromCupboard(run.Cupboard, costItemId, costAmount);
 
                 try
                 {
@@ -46,7 +50,7 @@ namespace Carbon.Plugins
                 }
                 catch (Exception exception)
                 {
-                    ReturnToCupboard(run.Cupboard, cost);
+                    ReturnToCupboard(run.Cupboard, costItemId, costAmount);
 
                     PrintError("Could not upgrade block {0}: {1}", block.net.ID.ToString(), exception.Message);
                 }
@@ -98,11 +102,12 @@ namespace Carbon.Plugins
                 ConstructionGrade grade = GetConstructionGrade(block, targetGrade);
                 if (grade == null) continue;
 
-                List<ItemAmount> cost = grade.CostToBuild(block.grade);
-                if (cost.Count == 0) continue;
-
+                int itemId;
+                int amount;
+                if (!TryGetBlockCost(grade, block, out itemId, out amount)) continue;
+                if (preview.CostItemId == 0) preview.CostItemId = itemId;
+                preview.TotalCost += amount;
                 preview.EligibleBlocks.Add(block);
-                AddAmounts(preview.TotalCost, cost);
             }
 
             return preview;
@@ -120,64 +125,30 @@ namespace Carbon.Plugins
             return block.blockDefinition.GetGrade(targetGrade, 0UL);
         }
 
-        private static void TakeFromCupboard(BuildingPrivlidge cupboard, List<ItemAmount> cost)
+        private static bool TryGetBlockCost(ConstructionGrade grade, BuildingBlock block,
+            out int itemId, out int amount)
         {
-            foreach (ItemAmount amount in cost)
-                cupboard.inventory.Take(null, amount.itemid, (int)amount.amount);
-        }
+            itemId = 0;
+            amount = 0;
+            if (grade == null || block == null) return false;
 
-        private static void ReturnToCupboard(BuildingPrivlidge cupboard, List<ItemAmount> amounts)
-        {
-            foreach (ItemAmount amount in amounts)
-                cupboard.inventory.AddItem(amount.itemDef, (int)amount.amount);
-        }
+            List<ItemAmount> cost = grade.CostToBuild(block.grade);
+            if (cost == null || cost.Count == 0) return false;
 
-        private static void AddAmounts(Dictionary<int, int> total, List<ItemAmount> amounts)
-        {
-            foreach (ItemAmount amount in amounts)
-            {
-                int itemId = amount.itemid;
-                int value = (int)amount.amount;
-
-                if (total.ContainsKey(itemId))
-                    total[itemId] += value;
-                else
-                    total[itemId] = value;
-            }
-        }
-
-        private static bool HasAmounts(BuildingPrivlidge cupboard, Dictionary<int, int> required)
-        {
-            foreach (KeyValuePair<int, int> amount in required)
-            {
-                if (cupboard.inventory.GetAmount(amount.Key) < amount.Value) return false;
-            }
+            itemId = cost[0].itemid;
+            amount = (int)cost.Sum(entry => entry.amount);
             return true;
         }
 
-        private static bool CanPayAtLeastOneBlock(BuildingPrivlidge cupboard,
-            List<BuildingBlock> blocks, BuildingGrade.Enum targetGrade)
+        private static void TakeFromCupboard(BuildingPrivlidge cupboard, int itemId, int amount)
         {
-            foreach (BuildingBlock block in blocks)
-            {
-                ConstructionGrade grade = GetConstructionGrade(block, targetGrade);
-                if (grade == null)
-                    continue;
-
-                if (HasAmounts(cupboard, grade.CostToBuild(block.grade)))
-                    return true;
-            }
-
-            return false;
+            cupboard.inventory.Take(null, itemId, amount);
         }
 
-        private static bool HasAmounts(BuildingPrivlidge cupboard, List<ItemAmount> required)
+        private static void ReturnToCupboard(BuildingPrivlidge cupboard, int itemId, int amount)
         {
-            foreach (ItemAmount amount in required)
-            {
-                if (cupboard.inventory.GetAmount(amount.itemid) < amount.amount) return false;
-            }
-            return true;
+            ItemDefinition itemDefinition = ItemManager.FindItemDefinition(itemId);
+            if (itemDefinition != null) cupboard.inventory.AddItem(itemDefinition, amount);
         }
 
         private static BuildingPrivlidge GetAuthorizedCupboard(BasePlayer player)

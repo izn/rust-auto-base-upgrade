@@ -18,7 +18,8 @@ namespace Carbon.Plugins
         private sealed class GradePreview
         {
             public readonly List<BuildingBlock> EligibleBlocks = new List<BuildingBlock>();
-            public readonly Dictionary<int, int> TotalCost = new Dictionary<int, int>();
+            public int CostItemId;
+            public int TotalCost;
             public int TotalBlocks;
             public int BlocksBelowTarget;
         }
