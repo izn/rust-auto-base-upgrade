@@ -30,7 +30,7 @@ namespace Carbon.Plugins
             uint buildingId = cupboard.buildingID;
             if (runningUpgradesByBuilding.ContainsKey(buildingId))
             {
-                SendMessage(player, "UpgradeAlreadyRunning");
+                SendChatMessage(player, "UpgradeAlreadyRunning");
                 return;
             }
 
@@ -38,7 +38,7 @@ namespace Carbon.Plugins
             GradePreview preview = BuildPreview(targetGrade, GetBuildingBlocks(cupboard));
             if (preview.EligibleBlocks.Count == 0)
             {
-                SendMessage(player, "NothingToUpgrade");
+                SendChatMessage(player, "NothingToUpgrade");
 
                 upgradeUi.ShowUpgradeMenu(player, cupboard);
                 return;
@@ -57,7 +57,7 @@ namespace Carbon.Plugins
             upgradeUi.DestroyMenu(player);
             upgradeUi.RefreshCupboardButtons(cupboard);
 
-            SendMessage(player, "UpgradeStarted",
+            SendChatMessage(player, "UpgradeStarted",
                 run.Blocks.Count, GetGradeName(player, targetGrade));
 
             UpgradeNextBlock(run);
@@ -75,7 +75,7 @@ namespace Carbon.Plugins
             UpgradeRun run;
             if (!runningUpgradesByBuilding.TryGetValue(buildingId, out run))
             {
-                SendMessage(player, "NothingToStop");
+                SendChatMessage(player, "NothingToStop");
                 upgradeUi.ShowAutoUpgradeButton(player, cupboard);
                 return;
             }
@@ -86,7 +86,7 @@ namespace Carbon.Plugins
             FinishUpgrade(run, owner, "UpgradeStopped");
 
             if (owner != player)
-                SendMessage(player, "UpgradeStopped");
+                SendChatMessage(player, "UpgradeStopped");
         }
 
         private static BasePlayer GetPlayer(ConsoleSystem.Arg arg)

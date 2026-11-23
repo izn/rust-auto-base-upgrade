@@ -32,5 +32,13 @@ namespace Carbon.Plugins
         {
             upgradeUi.DestroyAllUi(player);
         }
+
+        private void SendChatMessage(BasePlayer player, string key, params object[] args)
+        {
+            if (player == null || !player.IsConnected)
+                return;
+
+            player.ChatMessage(GetMessage(key, player, args));
+        }
     }
 }

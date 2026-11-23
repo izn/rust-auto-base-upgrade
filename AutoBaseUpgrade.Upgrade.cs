@@ -71,7 +71,7 @@ namespace Carbon.Plugins
         {
             runningUpgradesByBuilding.Remove(run.BuildingId);
             upgradeUi.RefreshCupboardButtons(run.Cupboard);
-            SendMessage(player, messageKey, args);
+            SendChatMessage(player, messageKey, args);
         }
 
         private static void UpgradeBlock(BasePlayer player, BuildingBlock block,
