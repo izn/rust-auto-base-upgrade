@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Carbon.Components;
 using UnityEngine;
 
@@ -108,10 +107,16 @@ namespace Carbon.Plugins
 
             public void RefreshCupboardButtons(BuildingPrivlidge cupboard)
             {
-                foreach (BasePlayer player in BasePlayer.activePlayerList)
+                HashSet<ulong> viewers;
+                if (!plugin.cupboardViewers.TryGetValue(cupboard, out viewers)) return;
+
+                foreach (ulong playerId in viewers)
                 {
-                    if (AutoBaseUpgrade.IsLooting(player, cupboard))
-                        ShowAutoUpgradeButton(player, cupboard);
+                    BasePlayer player = BasePlayer.FindByID(playerId);
+                    if (!AutoBaseUpgrade.IsLooting(player, cupboard))
+                        continue;
+
+                    ShowAutoUpgradeButton(player, cupboard);
                 }
             }
 
