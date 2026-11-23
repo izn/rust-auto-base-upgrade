@@ -26,22 +26,17 @@ namespace Carbon.Plugins
                 if (ShouldSkipBlock(block, run.TargetGrade))
                     continue;
 
-                ConstructionGrade grade = GetConstructionGrade(block, run.TargetGrade);
-                if (grade == null)
-                    continue;
+                ItemAmount cost = GetBlockCost(GetConstructionGrade(block, run.TargetGrade), block);
+                if (cost == null) continue;
 
-                int costItemId;
-                int costAmount;
-                if (!TryGetBlockCost(grade, block, out costItemId, out costAmount))
-                    continue;
-
-                if (run.Cupboard.inventory.GetAmount(costItemId) < costAmount)
+                if (run.Cupboard.inventory.GetAmount(cost.itemid) < cost.amount)
                 {
                     FinishUpgrade(run, player, "NotEnoughResources");
                     return;
                 }
 
-                TakeFromCupboard(run.Cupboard, costItemId, costAmount);
+                int costAmount = (int)cost.amount;
+                TakeFromCupboard(run.Cupboard, cost.itemid, costAmount);
 
                 try
                 {
@@ -50,7 +45,7 @@ namespace Carbon.Plugins
                 }
                 catch (Exception exception)
                 {
-                    ReturnToCupboard(run.Cupboard, costItemId, costAmount);
+                    ReturnToCupboard(run.Cupboard, cost.itemid, costAmount);
 
                     PrintError("Could not upgrade block {0}: {1}", block.net.ID.ToString(), exception.Message);
                 }
@@ -99,14 +94,10 @@ namespace Carbon.Plugins
 
                 preview.BlocksBelowTarget++;
 
-                ConstructionGrade grade = GetConstructionGrade(block, targetGrade);
-                if (grade == null) continue;
-
-                int itemId;
-                int amount;
-                if (!TryGetBlockCost(grade, block, out itemId, out amount)) continue;
-                if (preview.CostItemId == 0) preview.CostItemId = itemId;
-                preview.TotalCost += amount;
+                ItemAmount cost = GetBlockCost(GetConstructionGrade(block, targetGrade), block);
+                if (cost == null) continue;
+                preview.CostItemId = cost.itemid;
+                preview.TotalCost += (int)cost.amount;
                 preview.EligibleBlocks.Add(block);
             }
 
@@ -125,19 +116,10 @@ namespace Carbon.Plugins
             return block.blockDefinition.GetGrade(targetGrade, 0UL);
         }
 
-        private static bool TryGetBlockCost(ConstructionGrade grade, BuildingBlock block,
-            out int itemId, out int amount)
+        private static ItemAmount GetBlockCost(ConstructionGrade grade, BuildingBlock block)
         {
-            itemId = 0;
-            amount = 0;
-            if (grade == null || block == null) return false;
-
-            List<ItemAmount> cost = grade.CostToBuild(block.grade);
-            if (cost == null || cost.Count == 0) return false;
-
-            itemId = cost[0].itemid;
-            amount = (int)cost.Sum(entry => entry.amount);
-            return true;
+            if (grade == null || block == null) return null;
+            return grade.CostToBuild(block.grade).FirstOrDefault();
         }
 
         private static void TakeFromCupboard(BuildingPrivlidge cupboard, int itemId, int amount)
